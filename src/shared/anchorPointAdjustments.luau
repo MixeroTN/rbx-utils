@@ -37,16 +37,42 @@ function anchorPointAdjustments:CalculateOffset(CurrentSize: UDim2, AnchorPoint:
 	)
 end
 
-function anchorPointAdjustments:AdjustPosition(UIObject: GuiObject, NewAnchorPoint: Vector2): ()
-	local currentPosition: UDim2 = UIObject.Position
-	local currentSize: UDim2 = UIObject.Size
-	local oldAnchorPoint: Vector2 = UIObject.AnchorPoint
+function anchorPointAdjustments:GetAdjustedPositionScale(
+	Position: UDim2,
+	Size: UDim2,
+	OldAnchorPoint: Vector2,
+	NewAnchorPoint: Vector2
+): UDim2
+	local oldOffset: UDim2 = self:CalculateOffset(Size, OldAnchorPoint)
+	local newOffset: UDim2 = self:CalculateOffset(Size, NewAnchorPoint)
 
-	local oldOffset: UDim2 = self:CalculateOffset(currentSize, oldAnchorPoint)
-	local newOffset: UDim2 = self:CalculateOffset(currentSize, NewAnchorPoint)
+	local result: UDim2 = Position - oldOffset + newOffset
+	return UDim2.fromScale(result.X.Scale, result.Y.Scale)
+end
 
+function anchorPointAdjustments:GetAdjustedPositionOffset(
+	Position: UDim2,
+	Size: UDim2,
+	OldAnchorPoint: Vector2,
+	NewAnchorPoint: Vector2
+): UDim2
+	local oldOffset: UDim2 = self:CalculateOffset(Size, OldAnchorPoint)
+	local newOffset: UDim2 = self:CalculateOffset(Size, NewAnchorPoint)
+
+	local result: UDim2 = Position - oldOffset + newOffset
+	return UDim2.fromOffset(result.X.Offset, result.Y.Offset)
+end
+
+function anchorPointAdjustments:AdjustPositionScale(UIObject: GuiObject, NewAnchorPoint: Vector2): ()
 	UIObject.AnchorPoint = NewAnchorPoint
-	UIObject.Position = currentPosition - oldOffset + newOffset
+	UIObject.Position =
+		self:GetAdjustedPositionScale(UIObject.Position, UIObject.Size, UIObject.AnchorPoint, NewAnchorPoint)
+end
+
+function anchorPointAdjustments:AdjustPositionOffset(UIObject: GuiObject, NewAnchorPoint: Vector2): ()
+	UIObject.AnchorPoint = NewAnchorPoint
+	UIObject.Position =
+		self:GetAdjustedPositionOffset(UIObject.Position, UIObject.Size, UIObject.AnchorPoint, NewAnchorPoint)
 end
 
 return anchorPointAdjustments
